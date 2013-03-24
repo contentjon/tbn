@@ -1,53 +1,62 @@
 (ns db.core
   (:refer-clojure :exclude [-write replace]))
 
-(defprotocol AsyncDB
-  (-read    [db key callback])
-  (-write   [db key value callback])
-  (-delete  [db key callback]))
+(defprotocol IStore
+  (-create! [_ collection model-data callback])  
+  (-update! [_ collection model cmd callback])
+  (-delete! [_ collection model callback]))
 
-(defn error [& msg]
-  (throw (apply println-str msg)))
+(def create! -create!)
+(def update! -update!)
+(def delete! -delete!)
 
-(def not-found ::not-found)
+;; (defprotocol AsyncDB
+;;   (-read    [db key callback])
+;;   (-write   [db key value callback])
+;;   )
 
-(defn not-found? [x]
-  (= x not-found))
+;; (defn error [& msg]
+;;   (throw (apply println-str msg)))
 
-(defn read [db key callback]
-  (-read db key
-         (fn [x]
-           (when (not-found? x)
-             (error "read on not-existing key:"))
-           (callback x))))
+;; (def not-found ::not-found)
 
-(defn exists? [db key callback]
-  (-read db key
-         (fn [x]
-           (callback (not (not-found? x))))))
+;; (defn not-found? [x]
+;;   (= x not-found))
 
-(defn create [db key value callback]
-  (exists? db key
-           (fn [exist?]
-             (when exist?
-               (error "create already existing key:" key))
-             (-write db key value callback))))
+;; (defn read [db key callback]
+;;   (-read db key
+;;          (fn [x]
+;;            (when (not-found? x)
+;;              (error "read on not-existing key:"))
+;;            (callback x))))
 
-(defn replace [db key value callback]
-  (exists? db key
-           (fn [exist?]
-             (when-not exist?
-               (error "replace non-existing key:" key))
-             (-write db key value callback))))
+;; (defn exists? [db key callback]
+;;   (-read db key
+;;          (fn [x]
+;;            (callback (not (not-found? x))))))
 
-(defn update [db key f callback]
-  (read db key
-        (fn [x]
-          (replace db key (f x) callback))))
+;; (defn create [db key value callback]
+;;   (exists? db key
+;;            (fn [exist?]
+;;              (when exist?
+;;                (error "create already existing key:" key))
+;;              (-write db key value callback))))
 
-(defn delete [db key callback]
-  (exists? db key
-           (fn [exist?]
-             (when-not exist?
-               (error "delete non-existing key:" key))
-             (-delete db key callback))))
+;; (defn replace [db key value callback]
+;;   (exists? db key
+;;            (fn [exist?]
+;;              (when-not exist?
+;;                (error "replace non-existing key:" key))
+;;              (-write db key value callback))))
+
+;; (defn update [db key f callback]
+;;   (read db key
+;;         (fn [x]
+;;           (replace db key (f x) callback))))
+
+;; (defn delete [db key callback]
+;;   (exists? db key
+;;            (fn [exist?]
+;;              (when-not exist?
+;;                (error "delete non-existing key:" key))
+;;              (-delete db key callback))))

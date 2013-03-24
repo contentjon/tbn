@@ -1,4 +1,4 @@
-(ns model.command)
+XO(ns model.command)
 
 (defmulti command->fn
   (fn [key & _]

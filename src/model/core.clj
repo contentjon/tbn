@@ -1,11 +1,15 @@
 (ns model.core
-  (:refer-clojure :exclude (-conj! -pop! -assoc! -dissoc!)))
+  (:refer-clojure :exclude (-conj! -pop! -assoc! -dissoc! -update!))
+  (:require [model.command :as cmd]))
 
 (defprotocol IMCollection
   (-conj! [_ v]))
 
 (defprotocol IMStack
   (-pop! [_]))
+
+(defprotocol IMSetable
+  (-reset! [_ val]))
 
 (defprotocol IMAssociative
   (-assoc! [_ k v]))
@@ -15,17 +19,32 @@
 
 (deftype Model
   [local
-   store]
-
+   store
+   uri]
+  
+  IMUpdate
+  (-update! [_ cmd]
+    (store/update! store uri @local
+      (fn [err update-fn]
+        (if err
+          (.error js/console "Couldn't change model with operation:" cmd)
+          ;; TODO trigger error event
+          (swap! local update-fn)
+          ;; TODO trigger change event
+          ))))
+  
+  IMSetable
+  (-set! [this val]
+    (-update! this [:set val]))
+  
   IMAssociative
-  (-assoc! [_ k v]
-    (store/update store
-      (swap! @local -assoc k v)))
-
+  (-assoc! [this k v]
+    (-update! this [:assoc k v]))
+  
   IMMap
   (-dissoc! [_ k v]
-    (swap! @local -dissoc k v))
-
+    (-update! this [:dissoc k v]))
+  
   ILookup
   (-lookup
     ([_ k]
@@ -38,34 +57,30 @@
    store ;; an asnychronous store (a remote server or local file store)
    uri   ;; location of the collection within the store
    ]
-
+  
   IMCollection
   (-conj! [_ model]
     (store/create store uri model
-      (fn [err model]
+      (fn [err model-data]
         (if err
           (.error js/console "Couldn't create model")
           ;; TODO fire error event
-          (store/swap! local conj model)
+          (store/swap! local conj (Model. (atom model-data) store uri))
           ;; TODO fire create event
           ))))
-
+  
   IMStack
   (-pop! [_]
-    (when-let [model (swap! local pop)]
-      (store/delete store uri model
-        (fn [err]
+    (store/delete store uri (last @local)
+      (fn [err]
+        (if error
+          (.error js/console "Couldn't create model")
+          ;; TODO: fire error event
+          (swap! local pop)
           ;; TODO: fire remove event
-          ))))
-
-  ILookup
-  (-lookup
-    ([this k]
-      (-lookup this k nil))
-    ([_ k not-found]
-     ;; TODO: provide lookup by id
-     not-found))
-
+          )
+        )))
+  
   IIndexed
   (-nth [_ n]
     (nth @local n)))
