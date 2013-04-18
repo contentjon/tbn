@@ -5,3 +5,5 @@ pom.xml
 /target/
 .lein-deps-sum
 /node_modules/
+/specs/
+Gemfile.lock
