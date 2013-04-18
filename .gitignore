@@ -2,5 +2,8 @@ pom.xml
 *jar
 /lib/
 /classes/
-/targets/
+/target/
 .lein-deps-sum
+/node_modules/
+/specs/
+Gemfile.lock
