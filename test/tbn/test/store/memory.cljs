@@ -1,5 +1,7 @@
 (ns tbn.test.store.memory
-  (:require [tbn.store          :as store]
+  (:require [tbn.collection     :as coll]
+            [tbn.events         :as evt]
+            [tbn.store          :as store]
             [tbn.store.memory   :as mem]
             [cljasmine.checkers :as checkers])
   (:require-macros [cljasmine.macros :as j]))
@@ -84,4 +86,21 @@
             (store/create! :coll {:foo 1} (fn []))
             (store/update! :coll 56 [:update-in [:foo] :inc]
               (fn [err value]
-                (j/expect err :not-nil))))))))
+                (j/expect err :not-nil))))))
+                
+    (j/describe "Querying for collections"
+                  
+      (j/it "supports query by collection name"
+           
+        (let [store (mem/make)]
+          
+          (store/create! store :fruit {:type "apple"}  (fn []))
+          (store/create! store :fruit {:type "orange"} (fn []))
+        
+          (j/waits-for "models to appear in collection" 500
+            :after  (fn [done]
+                      (let [coll (mem/collection store :fruit)]
+                        (evt/on coll :reset #(done nil coll))))
+            :expect (fn [coll]
+                      (j/expect (nth coll 0) := {:type "apple"  :_id 1})
+                      (j/expect (nth coll 1) := {:type "orange" :_id 2}))))))))

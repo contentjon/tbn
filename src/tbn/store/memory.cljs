@@ -1,7 +1,9 @@
 (ns tbn.store.memory
   (:require [tbn.collection :as coll]
             [tbn.commands   :as cmds]
+            [tbn.events     :as evt]
             [tbn.model      :as model]
+            [tbn.mutable    :as m]
             [tbn.store      :as store]))
 
 (defn- next-id [a]
@@ -39,11 +41,16 @@
 (defn make []
   (atom { :store {} :id 0 }))
 
+(defn- ->models [a coll]
+  (->> (get-in @a [:store coll])
+       (sort-by key)))
+
 (defn collection [a coll]
-  (coll/stored
-    (->> (get-in @a [:store coll])
-         (into (sorted-map))
-         (vals)
-         (map model/make)
-         (coll/cached))
-    a coll))
+  (let [cached (coll/cached)]
+    (js/setTimeout 
+     (fn []
+       (doseq [model (->models a coll)]
+         (m/conj! cached (val model)))
+       (evt/trigger cached :reset))
+     0)
+    (coll/stored cached a coll)))
