@@ -1,4 +1,9 @@
 (ns tbn.store.memory
+  "This type of store keeps all data in memory and
+   exists mostly for testing purposes.
+   Collections of models are indexed by regular clojure
+   values, like any map. Models indices are automatically
+   generated and increase monotonically"
   (:require [tbn.collection :as coll]
             [tbn.commands   :as cmds]
             [tbn.events     :as evt]

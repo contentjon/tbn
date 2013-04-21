@@ -47,11 +47,12 @@
 (defn channels []
   (Channels. (atom {})))
 
-(defn on 
+(defn on
   ([observable observer]
     (-on observable :all observer))
   ([observable events observer]
     (-on observable events observer)))
 
-(defn trigger [observable event & args]
+(defn trigger
+  [observable event & args]
   (-trigger observable event args))
