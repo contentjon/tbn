@@ -9,6 +9,10 @@
 (defn- next-id [a]
   (:id (swap! a update-in [:id] inc)))
 
+(defn- ->models [a coll]
+  (->> (get-in @a [:store coll])
+       (sort-by key)))
+
 (extend-protocol store/IStore
   cljs.core.Atom
   
@@ -36,21 +40,17 @@
         (do
           (swap! a update-in path dissoc model)
           (callback nil)))
-      a)))
+      a))
+  
+  (-collection [a collection]
+    (let [cached (coll/cached)]
+      (js/setTimeout 
+        (fn []
+          (doseq [model (->models a collection)]
+            (m/conj! cached (val model)))
+          (evt/trigger cached :reset))
+        0)
+      (coll/stored cached a collection))))
 
 (defn make []
   (atom { :store {} :id 0 }))
-
-(defn- ->models [a coll]
-  (->> (get-in @a [:store coll])
-       (sort-by key)))
-
-(defn collection [a coll]
-  (let [cached (coll/cached)]
-    (js/setTimeout 
-     (fn []
-       (doseq [model (->models a coll)]
-         (m/conj! cached (val model)))
-       (evt/trigger cached :reset))
-     0)
-    (coll/stored cached a coll)))

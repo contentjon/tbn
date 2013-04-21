@@ -99,8 +99,14 @@
         
           (j/waits-for "models to appear in collection" 500
             :after  (fn [done]
-                      (let [coll (mem/collection store :fruit)]
+                      (let [coll (store/collection store :fruit)]
                         (evt/on coll :reset #(done nil coll))))
             :expect (fn [coll]
-                      (j/expect (nth coll 0) := {:type "apple"  :_id 1})
-                      (j/expect (nth coll 1) := {:type "orange" :_id 2}))))))))
+                      (j/expect
+                        (nth coll 0)
+                        :=
+                        {:type "apple"  :_id 1})
+                      (j/expect
+                        (nth coll 1)
+                        :=
+                        {:type "orange" :_id 2}))))))))
