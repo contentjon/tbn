@@ -34,7 +34,7 @@
   e/IObservable
   (-on [this events observer]
     (e/on (-> @this 
-              meta 
+              meta
               :channels) 
           events 
           observer))
