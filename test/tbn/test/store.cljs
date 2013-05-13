@@ -1,8 +1,7 @@
 (ns tbn.test.store
   (:require [tbn.test.store.memory :as memory])
-  (:require-macros [cljasmine.macros :as j]))
+  (:require-macros [latte.core :refer (describe)]))
 
-(j/describe "Stores"
+(describe "Stores"
 
-  (j/describe "Simple In Memory Store"
-    (memory/specs)))
+  (memory/specs))

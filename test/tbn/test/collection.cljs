@@ -5,88 +5,93 @@
             [tbn.mutable        :as m]
             [tbn.store          :as store]
             [tbn.store.memory   :as mem]
-            [cljasmine.checkers :as checkers])
-  (:require-macros [cljasmine.macros :as j]))
+            [latte.chai         :refer (expect) :as chai])
+  (:require-macros [latte.core :refer (describe it)]))
 
-(j/describe "Collections"
+(chai/plugin "sinon-chai")
+
+(def spies (js/require "sinon"))
+
+(describe "Collections"
             
-  (j/describe "Cached Collections"
+  (describe "when cached"
     
-    (j/it "are empty when created"
+    (it "are empty when created" []
           
       (-> (coll/cached)
           (count)
-          (j/expect := 0)))
+          (expect :to.be.equal 0)))
               
-    (j/it "behave like a vector"
+    (it "behave like a vector" []
               
       (let [coll (coll/cached)]
           
         (m/conj! coll {:foo "bar"})
           
-        (j/expect (count coll) := 1)
-        (j/expect (nth coll 0) := {:foo "bar"})
+        (expect (count coll) :to.be.equal 1)
+        (expect (nth coll 0) :to.be.equal {:foo "bar"})
         
         (m/conj! coll {:banana "orange"})
-        (j/expect (count coll) := 2)
-        (j/expect (nth coll 1) := {:banana "orange"})
+        (expect (count coll) :to.be.equal 2)
+        (expect (nth coll 1) :to.be.equal {:banana "orange"})
           
         (m/pop! coll)
           
-        (j/expect (count coll) := 1)
-        (j/expect (nth coll 0) := {:foo "bar"})))
+        (expect (count coll) :to.be.equal 1)
+        (expect (nth coll 0) :to.be.equal {:foo "bar"})))
               
-    (j/it "emit an event when adding a model"
+    (it "emit an event when adding a model" []
           
       (let [coll (coll/cached)]
           
-        (evt/on coll :added #(j/expect % := :a-model))
+        (evt/on coll :added #(expect % :to.be.equal :a-model))
         (m/conj! coll :a-model)))
               
-    (j/it "emit an event when popping a model"
+    (it "emit an event when popping a model" []
           
       (let [coll (coll/cached)]
           
-        (evt/on coll :removed #(j/expect % := :a-model))
+        (evt/on coll :removed #(expect % :to.be.equal :a-model))
         (m/conj! coll :a-model)
         (m/pop! coll))))
    
-   (j/describe "Stored Collections"
+   (describe "when stored"
                     
-     (j/it "behave like a vector"
+     (it "behave like a vector" []
        
        (let [coll (coll/stored (coll/cached) (mem/make) :coll)]
            
          (m/conj! coll {:foo "bar"})
           
-         (j/expect (count coll)  := 1)
-         (j/expect @(nth coll 0) := {:_id 1 :foo "bar"})
+         (expect (count coll)  :to.be.equal 1)
+         (expect @(nth coll 0) :to.be.equal {:_id 1 :foo "bar"})
         
          (m/conj! coll {:banana "orange"})
-         (j/expect (count coll) := 2)
-         (j/expect @(nth coll 1) := {:_id 2 :banana "orange"})
+         (expect (count coll) :to.be.equal 2)
+         (expect @(nth coll 1) :to.be.equal {:_id 2 :banana "orange"})
           
          (m/pop! coll)
           
-         (j/expect (count coll) := 1)
-         (j/expect @(nth coll 0) := {:_id 1 :foo "bar"})))
-               
-     (j/it "emit an event when adding a model"
+         (expect (count coll) :to.be.equal 1)
+         (expect @(nth coll 0) :to.be.equal {:_id 1 :foo "bar"})))
+     
+     (it "emit an event when adding a model" []
           
        (let [coll (coll/stored (coll/cached) (mem/make) :coll)
-             spy  (js/jasmine.createSpy "callback")]
+             spy  (.spy spies)]
           
          (evt/on coll :added spy)
          (m/conj! coll {:foo 8})
-         (j/expect spy :to-have-been-called-with (nth coll 0))))
+         (expect spy :to.have.been.calledWith (nth coll 0))))
               
-     (j/it "emit an event when popping a model"
-          
+     (it "emit an event when popping a model" []
+       
        (let [coll (coll/stored (coll/cached) (mem/make) :coll)
-             spy  (js/jasmine.createSpy "callback")]
+             spy  (.spy spies)]
           
          (evt/on coll :removed spy)
          (m/conj! coll {:foo 8})
          (let [model (nth coll 0)]
            (m/pop! coll)
-           (j/expect spy :to-have-been-called-with model))))))
+           (expect spy :to.have.been.calledWith model))))))
+

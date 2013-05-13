@@ -1,72 +1,73 @@
 (ns tbn.test.model
-  (:require [tbn.events         :as evt]
+  (:require [clojure.data       :as data]
+            [tbn.events         :as evt]
             [tbn.model          :as model]
             [tbn.mutable        :as m]
             [tbn.store          :as store]
             [tbn.store.memory   :as mem]
-            [cljasmine.checkers :as checkers])
-  (:require-macros [cljasmine.macros :as j]))
+            [latte.chai         :refer (expect)])
+  (:require-macros [latte.core :refer (describe it)]))
 
-(j/describe "Models"
+(describe "Models"
             
-  (j/it "can be created with initial data"
+  (it "can be created with initial data" []
   
     (let [store (mem/make)]
       
       (store/create! store :coll {:foo "bar"} 
         (fn [err value]
-          (j/expect err := nil)
+          (expect err :to.be.equal nil)
           (let [model (model/make store :coll value)]
-            (j/expect @model := {:foo "bar" :_id 1}))))))
+            (expect @model :to.be.equal {:foo "bar" :_id 1}))))))
             
-  (j/it "can be updated"
+  (it "can be updated" []
   
     (let [store (mem/make)]
       
       (store/create! store :coll {:foo 16} 
         (fn [err value]
-          (j/expect err := nil)
+          (expect err :to.be.equal nil)
           (let [model (model/make store :coll value)]
-            (j/expect @model := {:foo 16 :_id 1})
+            (expect @model :to.be.equal {:foo 16 :_id 1})
             (m/update! model [:update-in [:foo] :inc])
-            (j/expect @model := {:foo 17 :_id 1}))))))
+            (expect @model :to.be.equal {:foo 17 :_id 1}))))))
             
-  (j/it "can change a property explicitly"
+  (it "can change a property explicitly" []
   
     (let [store (mem/make)]
       
       (store/create! store :coll {:foo "bar" }
         (fn [err value]
-          (j/expect err := nil)
+          (expect err :to.be.equal nil)
           (let [model (model/make store :coll value)]
-            (j/expect @model := {:foo "bar" :_id 1})
+            (expect @model :to.be.equal {:foo "bar" :_id 1})
             (m/assoc! model :foo "baz")
-            (j/expect @model := {:foo "baz" :_id 1}))))))
+            (expect @model :to.be.equal {:foo "baz" :_id 1}))))))
   
-  (j/it "can remove a property entirely"
+  (it "can remove a property entirely" []
   
     (let [store (mem/make)]
       
       (store/create! store :coll {:foo "bar" }
         (fn [err value]
-          (j/expect err := nil)
+          (expect err :to.be.equal nil)
           (let [model (model/make store :coll value)]
-            (j/expect @model := {:foo "bar" :_id 1})
+            (expect @model :to.be.equal {:foo "bar" :_id 1})
             (m/dissoc! model :foo)
-            (j/expect @model := {:_id 1}))))))
+            (expect @model :to.be.equal {:_id 1}))))))
   
-  (j/it "emit an event when updated"
+  (it "emit an event when updated" []
         
     (let [store (mem/make)
           diff  (atom nil)]
       
       (store/create! store :coll {:foo "bar"}
         (fn [err value]
-          (j/expect err := nil)
+          (expect err :to.be.equal nil)
           (let [model (model/make store :coll value)]
-            (evt/on model :changed #(reset! diff (clojure.data/diff %1 %2)))
+            (evt/on model :changed #(reset! diff (data/diff %1 %2)))
             (m/update! model [:assoc :bar "baz"])
-            (j/expect 
+            (expect 
               @diff
-              :=
+              :to.be.equal
               [nil {:bar "baz"} {:_id 1 :foo "bar"}])))))))

@@ -1,48 +1,48 @@
 (ns tbn.test.commands
   (:require [tbn.commands       :as cmd]
-            [cljasmine.checkers :as checkers])
-  (:require-macros [cljasmine.macros :as j]))
+            [latte.chai         :refer (expect)])
+  (:require-macros [latte.core :refer (describe it)]))
 
-(j/describe "Commands"
-            
-  (j/it "support setting of a value"
-        
-    (j/expect 
+(describe "Commands"
+
+  (it "support setting of a value" []
+
+    (expect
       ((cmd/cmd->fn [:set 5]) 3)
-      :=
+      :to.be.equal
       5))
-            
-  (j/it "support increasing a value"
-        
-    (j/expect 
+
+  (it "support increasing a value" []
+
+    (expect
       ((cmd/cmd->fn [:inc]) 8)
-      :=
+      :to.be.equal
       9))
-            
-  (j/it "support decreasing a value"
-        
-    (j/expect
+
+  (it "support decreasing a value" []
+
+    (expect
       ((cmd/cmd->fn [:dec]) 3)
-      :=
+      :to.be.equal
       2))
-            
-  (j/it "support associcating a value with a key"
-        
-    (j/expect
+
+  (it "support associcating a value with a key" []
+
+    (expect
       ((cmd/cmd->fn [:assoc :a "foo"]) {})
-      :=
+      :to.be.equal
       {:a "foo"}))
-            
-  (j/it "support disassociating a key"
-        
-    (j/expect
+
+  (it "support disassociating a key" []
+
+    (expect
       ((cmd/cmd->fn [:dissoc :bar]) {:bar 1})
-      :=
+      :to.be.equal
       {}))
-  
-  (j/it "support updating a nested map"
-        
-    (j/expect
+
+  (it "support updating a nested map" []
+
+    (expect
       ((cmd/cmd->fn [:update-in [:a :b] :set 8]) {:a {:b 1}})
-      :=
+      :to.be.equal
       {:a {:b 8}})))
