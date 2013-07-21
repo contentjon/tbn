@@ -78,7 +78,7 @@
           (e/trigger local :error err)
           (m/-conj! local
                     (model/make store
-                                this
+                                uri
                                 model-data))))))
 
   m/IMStack

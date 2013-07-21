@@ -15,6 +15,8 @@
     "Update a model by supplying a command data
      structure, which describes a change to a an
      extender of this protocol.
+     Commands take the form: [<op> <parameters>*]. 
+     For example: [:assoc :a 5].
      See the command name space for a full documentation
      of the command data structure."))
 
