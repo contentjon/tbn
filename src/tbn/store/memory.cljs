@@ -20,14 +20,14 @@
 
 (extend-protocol store/IStore
   cljs.core.Atom
-  
+
   (-create! [a collection model-data callback]
     (let [id         (next-id a)
           model-data (assoc model-data :_id id)]
       (swap! a assoc-in [:store collection id] model-data)
       (callback nil model-data)
       a))
-  
+
   (-update! [a collection model cmd callback]
     (let [path      (vector :store collection model)
           update-fn (cmds/cmd->fn cmd)]
@@ -37,7 +37,7 @@
                (callback nil)))
         (callback (js/Error. "Model" (str path) "does not exist")))
       a))
-  
+
   (-delete! [a collection model callback]
     (let [path (vector :store collection)]
       (if-not (contains? (get-in @a path) model)
@@ -46,16 +46,22 @@
           (swap! a update-in path dissoc model)
           (callback nil)))
       a))
-  
+
   (-collection [a collection]
-    (let [cached (coll/cached)]
-      (js/setTimeout 
-        (fn []
-          (doseq [model (->models a collection)]
-            (m/conj! cached (val model)))
-          (evt/trigger cached :reset))
-        0)
-      (coll/stored cached a collection))))
+    (when (get-in @a [:store collection])
+      (let [cached (coll/cached)
+            stored (coll/stored cached a collection)]
+        (js/setTimeout
+         (fn []
+           (doseq [model (->models a collection)]
+             (m/conj! cached (model/make a stored (val model))))
+           (evt/trigger cached :reset))
+         0)
+        stored))))
 
 (defn make []
   (atom { :store {} :id 0 }))
+
+(defn add-collection! [a n]
+  (when-not (get-in @a [:store n])
+    (swap! a assoc-in [:store n] {})))

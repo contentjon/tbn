@@ -97,6 +97,10 @@
   (-count [_]
     (-count local))
 
+  IDeref
+  (-deref [_]
+    (map deref @local))
+
   e/IObservable
   (-on [_ events observer]
     (e/on local events observer)))
