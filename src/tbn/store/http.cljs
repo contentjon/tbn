@@ -7,7 +7,10 @@
             [tbn.mutable    :as m]
             [tbn.store      :as store]))
 
-(deftype HttpStore [uri]
+(deftype HttpStore
+  [host ;; the host used by this store
+   base ;; the base uri for the store
+   ]
   
   store/IStore
   
@@ -51,13 +54,20 @@
       (.send (JSON/stringify (clj->js model-data)))))
   
   (-update! [a collection model cmd callback]
-    ;; not supported yet
+    ;; not supported yet (trivial)
     )
   
   (-delete! [a collection model callback]
-    ;; not supported yet
+    ;; not supported yet (trivial)
     )
   
   (-collection [a collection]
     ;; not supported yet
+    ;; construct path to collection
+    ;; fetch collection path and browse instances
+    ;; if instances contain "full" link
+    ;;   fetch instances asynchronously
+    ;; if instances don't contain the full relationship,
+    ;;   assume the document contains the full versions of all
+    ;;   instances and insert them into the collection synchronously
     ))
