@@ -71,24 +71,21 @@
    ]
 
   m/IMCollection
-  (-conj! [this model]
-    (store/create! store uri model
-      (fn [err model-data]
+  (-conj! [this model-data]
+    (store/create! store uri model-data
+      (fn [err model]
         (if err
           (e/trigger local :error err)
-          (m/-conj! local
-                    (model/make store
-                                uri
-                                model-data))))))
-
+          (m/-conj! local model)))))
+  
   m/IMStack
   (-pop! [_]
-    (store/delete! store uri (:_id @(last @local))
+    (store/delete! store uri (last @local)
       (fn [err]
         (if err
           (e/trigger local :error err)
           (m/-pop! local)))))
-
+  
   IIndexed
   (-nth [_ n]
     (-nth local n))

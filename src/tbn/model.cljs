@@ -26,15 +26,15 @@
    channels]
 
   m/IMUpdate
-  (-update! [_ cmd]
-    (store/update! store collection (:_id @local) cmd
+  (-update! [this cmd]
+    (store/update! store collection this cmd
       (fn [err updated]
         (if err
           (e/trigger local :error err)
           (let [current @local
                 new     (reset! local updated)]
             (e/trigger channels :changed current new))))))
-
+  
   m/IMSetable
   (-reset! [this val]
     (m/-update! this [:set val]))

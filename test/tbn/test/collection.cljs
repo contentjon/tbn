@@ -59,25 +59,29 @@
                     
      (it "behave like a vector" []
        
-       (let [coll (coll/stored (coll/cached) (mem/make) :coll)]
+       (let [store (mem/make)
+             _     (mem/add-collection! store :coll)
+             coll  (store/collection store :coll)]
            
          (m/conj! coll {:foo "bar"})
           
          (expect (count coll)  :to.be.equal 1)
          (expect @(nth coll 0) :to.be.equal {:_id 1 :foo "bar"})
-        
+         
          (m/conj! coll {:banana "orange"})
          (expect (count coll) :to.be.equal 2)
          (expect @(nth coll 1) :to.be.equal {:_id 2 :banana "orange"})
           
          (m/pop! coll)
-          
+         
          (expect (count coll) :to.be.equal 1)
          (expect @(nth coll 0) :to.be.equal {:_id 1 :foo "bar"})))
      
      (it "emit an event when adding a model" []
           
-       (let [coll (coll/stored (coll/cached) (mem/make) :coll)
+       (let [store (mem/make)
+             _     (mem/add-collection! store :coll)
+             coll  (store/collection store :coll)
              spy  (.spy spies)]
           
          (evt/on coll :added spy)
@@ -86,7 +90,9 @@
               
      (it "emit an event when popping a model" []
        
-       (let [coll (coll/stored (coll/cached) (mem/make) :coll)
+       (let [store (mem/make)
+             _     (mem/add-collection! store :coll)
+             coll  (store/collection store :coll)
              spy  (.spy spies)]
           
          (evt/on coll :removed spy)
