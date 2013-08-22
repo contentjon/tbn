@@ -64,4 +64,5 @@
 
 (defn add-collection! [a n]
   (when-not (get-in @a [:store n])
-    (swap! a assoc-in [:store n] {})))
+    (swap! a assoc-in [:store n] {})
+    (store/collection a n)))
